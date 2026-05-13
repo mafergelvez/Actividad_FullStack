@@ -105,10 +105,17 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
     canvas.toBlob((blob) => {
       if (!blob) return;
 
-      // TODO(actividad): construir el archivo capturado y actualizar estados.
-      // const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
-      // setUploadFile(file);
-      // setUploadPreview(URL.createObjectURL(file));
+      // 1. Creamos el archivo real a partir del blob del canvas
+      const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+
+      // 2. Guardamos el archivo en el estado para enviarlo luego
+      setUploadFile(file);
+
+      // 3. Creamos una URL temporal para mostrar la foto en el modal
+      setUploadPreview(URL.createObjectURL(file));
+
+      // 4. Detenemos la cámara para mostrar el resultado
+      stopCamera();
 
       setUploadError("TODO: completar guardado de captura desde webcam.");
       stopCamera();
@@ -124,9 +131,19 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // TODO(actividad): agregar validaciones basicas (tipo y tamano maximo).
-    // Ejemplos sugeridos: image/jpeg, image/png y un limite de 2MB.
+    // TODO(actividad): agregar validaciones básicas
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      setUploadError("Solo se permiten imágenes JPG o PNG.");
+      return;
+    }
 
+    if (file.size > 2 * 1024 * 1024) { // Límite de 2MB
+      setUploadError("La imagen es demasiado grande (máximo 2MB).");
+      return;
+    }
+
+    setUploadError(""); // Limpiamos errores previos si todo está bien
     setUploadFile(file);
     setUploadPreview(URL.createObjectURL(file));
   };
@@ -137,15 +154,14 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
       setIsUploading(true);
       setUploadError("");
 
-      // TODO(actividad): mejorar manejo de estado y errores durante el submit.
-      // Debe consumir studentsService.uploadPicture y cerrar modal en exito.
+      // TODO(actividad): consumir studentsService.uploadPicture
       const updated = await studentsService.uploadPicture(student.id, uploadFile);
-      onSuccess(updated);
-      handleClose();
+      
+      // Si el servicio responde bien, ejecutamos el éxito
+      onSuccess(updated); 
+      handleClose(); // Cerramos el modal
     } catch (err) {
-      setUploadError(
-        err?.message || "Error al subir la imagen. Completa la implementacion pendiente."
-      );
+      setUploadError(err.message || "Error al subir la imagen.");
     } finally {
       setIsUploading(false);
     }
