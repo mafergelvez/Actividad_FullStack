@@ -20,27 +20,33 @@ class StudentViewSet(viewsets.ModelViewSet):
         student = self.get_object()
 
         # TODO(actividad): Validar que exista `profile_picture` en request.FILES.
-        # TODO(actividad): Validar tipo/tamano basico del archivo antes de guardar.
-        # TODO(actividad): Usar StudentPictureSerializer para persistir la imagen.
-        # TODO(actividad): Retornar StudentSerializer(student, context={"request": request}).data
-        #                  cuando la subida sea exitosa.
-
         incoming_file = request.FILES.get('profile_picture')
         if not incoming_file:
             return Response(
                 {'detail': 'Debes enviar el archivo profile_picture.'},
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_400_BAD_REQUEST
             )
 
-        return Response(
-            {
-                'detail': (
-                    'TODO_ACTIVIDAD: completa la logica de guardado en '
-                    'academy.views.StudentViewSet.upload_picture'
-                )
-            },
-            status=status.HTTP_501_NOT_IMPLEMENTED,
-        )
+        # TODO(actividad): Validar tipo/tamaño básico del archivo antes de guardar.
+        if incoming_file.size > 2 * 1024 * 1024: # Límite de 2MB
+             return Response(
+                {'detail': 'La imagen es demasiado pesada (máximo 2MB).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # TODO(actividad): Usar StudentPictureSerializer para persistir la imagen.
+        serializer = StudentPictureSerializer(student, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            # TODO(actividad): Retornar StudentSerializer(student, context={"request": request}).data
+            # cuando la subida sea exitosa.
+            return Response(
+                StudentSerializer(student, context={'request': request}).data,
+                status=status.HTTP_200_OK
+            )
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class InstructorViewSet(viewsets.ModelViewSet):
     pass
