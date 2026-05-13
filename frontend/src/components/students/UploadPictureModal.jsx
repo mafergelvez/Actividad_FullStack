@@ -117,7 +117,7 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
       // 4. Detenemos la cámara para mostrar el resultado
       stopCamera();
 
-      setUploadError("TODO: completar guardado de captura desde webcam.");
+      setUploadError("");
       stopCamera();
     }, "image/jpeg", 0.9);
   };
